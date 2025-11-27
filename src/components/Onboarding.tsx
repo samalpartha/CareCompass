@@ -13,6 +13,8 @@ import type { CareRecipient } from '@/lib/types';
 
 const onboardingSchema = z.object({
   name: z.string().min(1, 'Please enter a name or nickname.'),
+  age: z.coerce.number().min(1, 'Please enter a valid age.').max(120, 'Please enter a valid age.'),
+  condition: z.enum(['alzheimers', 'dementia', 'not-specified']),
   stage: z.enum(['early', 'mid', 'late', 'not-specified']).optional(),
 });
 
@@ -27,6 +29,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       name: '',
+      condition: 'not-specified',
       stage: 'not-specified',
     },
   });
@@ -64,19 +67,56 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Who are you caring for?</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter a name or nickname, e.g., Dad" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Who are you caring for?</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter a name or nickname, e.g., Dad" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                      control={form.control}
+                      name="age"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Age</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="e.g., 75" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="condition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Condition</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a condition" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="not-specified">Not Specified</SelectItem>
+                              <SelectItem value="alzheimers">Alzheimer's</SelectItem>
+                              <SelectItem value="dementia">Dementia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
                 <FormField
                   control={form.control}
                   name="stage"

@@ -2,6 +2,8 @@ import type { LucideIcon } from "lucide-react";
 
 export interface CareRecipient {
   name: string;
+  age: number;
+  condition: 'alzheimers' | 'dementia' | 'not-specified';
   stage?: 'early' | 'mid' | 'late' | 'not-specified';
 }
 
