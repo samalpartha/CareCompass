@@ -1,3 +1,5 @@
+import CareCompassApp from '@/components/CareCompassApp';
+
 export default function Home() {
-  return <></>;
+  return <CareCompassApp />;
 }
