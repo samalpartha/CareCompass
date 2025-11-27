@@ -36,7 +36,7 @@ const moodOptions = [
   { value: 2, icon: Frown, color: 'text-orange-500' },
   { value: 3, icon: Meh, color: 'text-yellow-500' },
   { value: 4, icon: Smile, color: 'text-green-500' },
-  { value: 5, icon: Laugh, color: 'text-blue-500' },
+  { value: 5, icon: Laugh, color: 'text-green-500' },
 ];
 
 export default function LogEntryForm({ isOpen, onOpenChange, onAddLog }: LogEntryFormProps) {
