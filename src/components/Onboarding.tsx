@@ -29,6 +29,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
       name: '',
+      age: undefined,
       condition: 'not-specified',
       stage: 'not-specified',
     },
@@ -88,7 +89,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         <FormItem>
                           <FormLabel>Age</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="e.g., 75" {...field} />
+                            <Input type="number" placeholder="e.g., 75" {...field} value={field.value ?? ''} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
