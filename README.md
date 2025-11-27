@@ -9,7 +9,7 @@ CareCompass is a simple, private, and secure AI companion designed to assist fam
 - **Symptom Tagging:** Quickly tag logs with common symptoms like confusion, memory issues, mood changes, and more.
 - **Caregiver Mood Tracking:** A simple slider to log your own emotional state, helping you keep an eye on your well-being too.
 - **Data Visualization:** Interactive charts display trends in logged symptoms and caregiver mood over time, helping to identify patterns.
-- **AI-Generated Visit Summaries:** Leverage Genkit and Google's Gemini models to create structured, insightful summaries of recent logs to prepare for doctor's appointments.
+- **AI-Generated Visit Summaries:** Leverage Google's Gemini models to create structured, insightful summaries of recent logs to prepare for doctor's appointments.
 - **100% Private & Secure:** All data is stored exclusively in your browser's local storage. No data ever leaves your computer.
 - **Reset Functionality:** Start over at any time with a clean slate.
 
@@ -22,7 +22,7 @@ This project is built with a modern, production-ready tech stack:
 - **UI:** [React](https://react.dev/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
-- **AI Integration:** [Genkit](https://firebase.google.com/docs/genkit) (with Google's Gemini models)
+- **AI Integration:** Google's Gemini API (via direct HTTPS requests)
 - **Charts:** [Recharts](https://recharts.org/)
 - **Forms:** [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/) for validation
 
@@ -49,11 +49,20 @@ To run this project locally, follow these steps:
 4.  **Open your browser:**
     Navigate to [http://localhost:9002](http://localhost:9002) to see the application in action.
 
+## Deploying for Free
+
+You can host CareCompass without Firebase using providers that have free tiers:
+
+- **Vercel:** Import this repository, add the `GEMINI_API_KEY` as an environment variable, and deploy a Next.js app. The default build command (`npm run build`) and output settings work out of the box.
+- **Netlify:** Connect the repo, set `npm run build` as the build command and `.next` as the publish directory, and add `GEMINI_API_KEY` in the site environment settings.
+
+Both options allow zero-cost hosting for small personal projects.
+
 ## Project Structure
 
 - `src/app/`: Contains the main pages and layout of the application.
 - `src/components/`: Reusable React components, including UI components from ShadCN and custom application components.
-- `src/ai/`: Houses the Genkit flows and AI-related logic.
-  - `src/ai/flows/`: Defines the AI-powered workflows, such as generating the doctor visit summary.
+- `src/ai/`: Houses the AI request helpers.
+  - `src/ai/flows/`: Defines AI-powered workflows, such as generating the doctor visit summary.
 - `src/lib/`: Contains shared utilities, type definitions, and constants.
 - `public/`: Static assets.
