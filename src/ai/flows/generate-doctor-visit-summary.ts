@@ -8,8 +8,7 @@
  * - GenerateDoctorVisitSummaryOutput - The return type for the generateDoctorVisitSummary function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const GenerateDoctorVisitSummaryInputSchema = z.object({
   logs: z.array(
@@ -37,39 +36,82 @@ const GenerateDoctorVisitSummaryOutputSchema = z.object({
 export type GenerateDoctorVisitSummaryOutput = z.infer<typeof GenerateDoctorVisitSummaryOutputSchema>;
 
 export async function generateDoctorVisitSummary(input: GenerateDoctorVisitSummaryInput): Promise<GenerateDoctorVisitSummaryOutput> {
-  return generateDoctorVisitSummaryFlow(input);
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is required to generate summaries.');
+  }
+
+  const prompt = buildPrompt(input.logs);
+  const response = await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' +
+      encodeURIComponent(apiKey),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [{text: prompt}],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.4,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Gemini request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+  const parsed = parseJsonResponse(rawText);
+
+  return GenerateDoctorVisitSummaryOutputSchema.parse({
+    keyChanges: parsed.keyChanges ?? 'No key changes were provided.',
+    exampleEpisodes: parsed.exampleEpisodes ?? 'No example episodes were provided.',
+    caregiverConcerns: parsed.caregiverConcerns ?? 'No caregiver concerns were provided.',
+    questionsToAsk: parsed.questionsToAsk ?? 'No questions were provided.',
+  });
 }
 
-const generateDoctorVisitSummaryPrompt = ai.definePrompt({
-  name: 'generateDoctorVisitSummaryPrompt',
-  input: {schema: GenerateDoctorVisitSummaryInputSchema},
-  output: {schema: GenerateDoctorVisitSummaryOutputSchema},
-  prompt: `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
+function buildPrompt(logs: GenerateDoctorVisitSummaryInput['logs']): string {
+  const formattedLogs = logs
+    .map(log => {
+      return `Date: ${log.date}\nText: ${log.text}\nConfusion: ${log.confusion ? 'Yes' : 'No'}\nMemory Issues: ${log.memoryIssues ? 'Yes' : 'No'}\nMood Changes: ${log.moodChanges ? 'Yes' : 'No'}\nSleep Issues: ${log.sleepIssues ? 'Yes' : 'No'}\nEating Issues: ${log.eatingIssues ? 'Yes' : 'No'}\nSafety Incidents: ${log.safetyIncidents ? 'Yes' : 'No'}\nCaregiver Mood: ${log.caregiverMood ?? 'Not logged'}`;
+    })
+    .join('\n\n');
 
-  Summarize the observations from the following logs, and create "Key changes since last visit", "Example episodes", "Caregiver concerns", and  "Questions you may want to ask" sections.
+  return `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
 
-  Logs:
-  {{#each logs}}
-  Date: {{date}}
-  Text: {{text}}
-  Confusion: {{#if confusion}}Yes{{else}}No{{/if}}
-  Memory Issues: {{#if memoryIssues}}Yes{{else}}No{{/if}}
-  Mood Changes: {{#if moodChanges}}Yes{{else}}No{{/if}}
-  Sleep Issues: {{#if sleepIssues}}Yes{{else}}No{{/if}}
-  Eating Issues: {{#if eatingIssues}}Yes{{else}}No{{/if}}
-  Safety Incidents: {{#if safetyIncidents}}Yes{{else}}No{{/if}}
-  Caregiver Mood: {{caregiverMood}}
-  {{/each}}`,
-});
+Summarize the observations from the following logs and return ONLY valid JSON matching this TypeScript type:
+{
+  "keyChanges": string;
+  "exampleEpisodes": string;
+  "caregiverConcerns": string;
+  "questionsToAsk": string;
+}
 
-const generateDoctorVisitSummaryFlow = ai.defineFlow(
-  {
-    name: 'generateDoctorVisitSummaryFlow',
-    inputSchema: GenerateDoctorVisitSummaryInputSchema,
-    outputSchema: GenerateDoctorVisitSummaryOutputSchema,
-  },
-  async input => {
-    const {output} = await generateDoctorVisitSummaryPrompt(input);
-    return output!;
+Logs:
+${formattedLogs}`;
+}
+
+function parseJsonResponse(raw: string): Partial<GenerateDoctorVisitSummaryOutput> {
+  const clean = raw
+    .replace(/^```json\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim();
+
+  try {
+    return JSON.parse(clean);
+  } catch (error) {
+    console.warn('Failed to parse Gemini response as JSON', {error, raw});
+    return {};
   }
-);
+}
