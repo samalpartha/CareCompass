@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon, BrainCircuit, BrainCog, HeartPulse, Bed, Utensils, AlertTriangle } from "lucide-react";
 
 export interface CareRecipient {
   name: string;

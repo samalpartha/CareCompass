@@ -2,6 +2,21 @@
 
 CareCompass is a simple, private, and secure AI companion designed to assist families and caregivers of individuals with dementia and Alzheimer's disease. It provides tools to log daily observations, track symptoms, monitor well-being, and generate AI-powered summaries for doctor visits, all while ensuring user data remains entirely on their local device.
 
+## Project Description
+
+### The Problem
+Caring for a loved one with dementia or Alzheimer's is a challenging journey filled with moments of uncertainty. Caregivers often struggle to track the subtle day-to-day changes, recall specific incidents during doctor visits, and manage their own emotional well-being. This can lead to stress, incomplete information for healthcare providers, and a feeling of being overwhelmed.
+
+### Our Approach
+CareCompass is a hyper-focused, client-side application that empowers caregivers with simple tools for daily logging and insightful data visualization. By leveraging AI, it transforms raw notes into a structured summary for doctor visits, helping to facilitate more effective conversations about care. The app prioritizes privacy and ease of use, with all data stored locally on the user's device.
+
+## Hackathon Submission Details
+
+- **Working Demo:** [Link to Deployed Prototype]
+- **Project Description:** You're reading it! This README provides a comprehensive overview of the problem, our approach, and the technology used.
+- **Demo Video (3-5 mins):** [Link to Demo Video]
+- **GitHub Repository:** The code for this project is available in this repository, with setup instructions below.
+
 ## Features
 
 - **Onboarding:** A simple setup process to personalize the dashboard for the care recipient.
@@ -49,20 +64,11 @@ To run this project locally, follow these steps:
 4.  **Open your browser:**
     Navigate to [http://localhost:9002](http://localhost:9002) to see the application in action.
 
-## Deploying for Free
-
-You can host CareCompass without Firebase using providers that have free tiers:
-
-- **Vercel:** Import this repository, add the `GEMINI_API_KEY` as an environment variable, and deploy a Next.js app. The default build command (`npm run build`) and output settings work out of the box.
-- **Netlify:** Connect the repo, set `npm run build` as the build command and `.next` as the publish directory, and add `GEMINI_API_KEY` in the site environment settings.
-
-Both options allow zero-cost hosting for small personal projects.
-
 ## Project Structure
 
 - `src/app/`: Contains the main pages and layout of the application.
 - `src/components/`: Reusable React components, including UI components from ShadCN and custom application components.
-- `src/ai/`: Houses the AI request helpers.
-  - `src/ai/flows/`: Defines AI-powered workflows, such as generating the doctor visit summary.
+- `src/ai/`: Houses the Genkit flows and AI-related logic.
+  - `src/ai/flows/`: Defines the AI-powered workflows, such as generating the doctor visit summary.
 - `src/lib/`: Contains shared utilities, type definitions, and constants.
 - `public/`: Static assets.
