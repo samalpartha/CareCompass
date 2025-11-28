@@ -1,7 +1,6 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   output: 'export',
   images: {
     unoptimized: true,
@@ -33,8 +32,6 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack: (config, { isServer }) => {
-    // This is the fix for the 'async_hooks' error.
-    // It tells webpack to not try to resolve this module on the client side.
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
