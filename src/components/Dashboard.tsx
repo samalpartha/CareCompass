@@ -27,6 +27,8 @@ export default function Dashboard({ careRecipient, logs, onUpdateLogs, onReset }
   const [summary, setSummary] = useState<GenerateDoctorVisitSummaryOutput | null>(null);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const { toast } = useToast();
+  
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
   const handleAddLog = (newLog: Omit<CareLog, 'id'>) => {
     const updatedLogs = [{ ...newLog, id: new Date().toISOString() }, ...logs];
@@ -34,6 +36,15 @@ export default function Dashboard({ careRecipient, logs, onUpdateLogs, onReset }
   };
   
   const handleGenerateSummary = async () => {
+    if (!apiKey) {
+      toast({
+        variant: "destructive",
+        title: "API Key Missing",
+        description: "Please set your NEXT_PUBLIC_GEMINI_API_KEY in a .env file to generate summaries.",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setSummary(null);
 
@@ -63,15 +74,16 @@ export default function Dashboard({ careRecipient, logs, onUpdateLogs, onReset }
     }));
 
     try {
-      const result = await generateDoctorVisitSummary({ logs: formattedLogs });
+      const result = await generateDoctorVisitSummary({ logs: formattedLogs }, apiKey);
       setSummary(result);
       setIsSummaryOpen(true);
     } catch (error) {
       console.error('Failed to generate summary', error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "There was an error generating the visit summary. Please make sure your API key is configured correctly and try again.",
+        description: `There was an error generating the visit summary: ${errorMessage}`,
       });
     } finally {
       setIsGenerating(false);

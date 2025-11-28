@@ -1,13 +1,7 @@
-'use server';
 /**
- * @fileOverview Generates a structured summary of recent care logs for doctor visits.
- *
- * - generateDoctorVisitSummary - A function that generates the summary.
- * - GenerateDoctorVisitSummaryInput - The input type for the generateDoctorVisitSummary function.
- * - GenerateDoctorVisitSummaryOutput - The return type for the generateDoctorVisitSummary function.
+ * @fileOverview Generates a structured summary of recent care logs for doctor visits using a direct API call.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const LogSchema = z.object({
@@ -22,14 +16,14 @@ const LogSchema = z.object({
   caregiverMood: z.number().optional(),
 });
 
-const GenerateDoctorVisitSummaryInputSchema = z.object({
+export const GenerateDoctorVisitSummaryInputSchema = z.object({
   logs: z.array(LogSchema).describe('An array of daily care logs.'),
 });
 export type GenerateDoctorVisitSummaryInput = z.infer<
   typeof GenerateDoctorVisitSummaryInputSchema
 >;
 
-const GenerateDoctorVisitSummaryOutputSchema = z.object({
+export const GenerateDoctorVisitSummaryOutputSchema = z.object({
   keyChanges: z.string().describe('Key changes since the last visit.'),
   exampleEpisodes: z.string().describe('Example episodes from the logs.'),
   caregiverConcerns: z.string().describe('Caregiver concerns based on the logs.'),
@@ -39,40 +33,81 @@ export type GenerateDoctorVisitSummaryOutput = z.infer<
   typeof GenerateDoctorVisitSummaryOutputSchema
 >;
 
-const prompt = ai.definePrompt({
-  name: 'doctorVisitSummaryPrompt',
-  input: { schema: GenerateDoctorVisitSummaryInputSchema },
-  output: { schema: GenerateDoctorVisitSummaryOutputSchema },
-  prompt: `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
+function buildPrompt(input: GenerateDoctorVisitSummaryInput): string {
+  const logEntries = input.logs.map(log => `
+Date: ${log.date}
+Text: ${log.text}
+Confusion: ${log.confusion ? 'Yes' : 'No'}
+Memory Issues: ${log.memoryIssues ? 'Yes' : 'No'}
+Mood Changes: ${log.moodChanges ? 'Yes' : 'No'}
+Sleep Issues: ${log.sleepIssues ? 'Yes' : 'No'}
+Eating Issues: ${log.eatingIssues ? 'Yes' : 'No'}
+Safety Incidents: ${log.safetyIncidents ? 'Yes' : 'No'}
+Caregiver Mood: ${log.caregiverMood}
+`).join('');
+
+  return `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
 
 Summarize the observations from the following logs.
-{{#each logs}}
-Date: {{this.date}}
-Text: {{this.text}}
-Confusion: {{#if this.confusion}}Yes{{else}}No{{/if}}
-Memory Issues: {{#if this.memoryIssues}}Yes{{else}}No{{/if}}
-Mood Changes: {{#if this.moodChanges}}Yes{{else}}No{{/if}}
-Sleep Issues: {{#if this.sleepIssues}}Yes{{else}}No{{/if}}
-Eating Issues: {{#if this.eatingIssues}}Yes{{else}}No{{/if}}
-Safety Incidents: {{#if this.safetyIncidents}}Yes{{else}}No{{/if}}
-Caregiver Mood: {{this.caregiverMood}}
-{{/each}}`,
-});
+${logEntries}`;
+}
 
-const summaryFlow = ai.defineFlow(
-  {
-    name: 'summaryFlow',
-    inputSchema: GenerateDoctorVisitSummaryInputSchema,
-    outputSchema: GenerateDoctorVisitSummaryOutputSchema,
-  },
-  async (input) => {
-    const llmResponse = await prompt(input);
-    return llmResponse.output!;
-  }
-);
 
 export async function generateDoctorVisitSummary(
-  input: GenerateDoctorVisitSummaryInput
+  input: GenerateDoctorVisitSummaryInput,
+  apiKey: string
 ): Promise<GenerateDoctorVisitSummaryOutput> {
-  return await summaryFlow(input);
+  
+  const promptText = buildPrompt(input);
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+  const requestBody = {
+    contents: [{ parts: [{ text: promptText }] }],
+    generationConfig: {
+      response_mime_type: "application/json",
+      response_schema: {
+        type: "OBJECT",
+        properties: {
+            keyChanges: { type: "STRING", description: "Key changes since the last visit." },
+            exampleEpisodes: { type: "STRING", description: "Example episodes from the logs." },
+            caregiverConcerns: { type: "STRING", description: "Caregiver concerns based on the logs." },
+            questionsToAsk: { type: "STRING", description: "Suggested questions to ask the doctor." }
+        },
+        required: ["keyChanges", "exampleEpisodes", "caregiverConcerns", "questionsToAsk"]
+      }
+    }
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+    }
+
+    const data = await response.json();
+    
+    const jsonText = data.candidates[0].content.parts[0].text;
+    const parsedOutput = JSON.parse(jsonText);
+
+    // Validate the output against the Zod schema
+    const validationResult = GenerateDoctorVisitSummaryOutputSchema.safeParse(parsedOutput);
+
+    if (!validationResult.success) {
+        throw new Error(`API response validation failed: ${validationResult.error.message}`);
+    }
+
+    return validationResult.data;
+
+  } catch (error) {
+    console.error("Error generating doctor visit summary:", error);
+    throw new Error("Failed to generate summary. Please check your API key and network connection.");
+  }
 }
