@@ -1,14 +1,14 @@
 # CareCompass
 
-CareCompass is a simple, private, and secure AI companion designed to assist families and caregivers of individuals with dementia and Alzheimer's disease. It provides tools to log daily observations, track symptoms, monitor well-being, and generate AI-powered summaries for doctor visits, all while ensuring user data remains entirely on their local device.
+CareCompass is a private, secure, and empathetic AI companion for families caring for loved ones with dementia and Alzheimer's disease. It provides simple tools to log daily observations, visualize trends, and generate insightful, AI-powered summaries for doctor visits, all while ensuring user data remains entirely on their local device.
 
 ## Project Description
 
 ### The Problem
-Caring for a loved one with dementia or Alzheimer's is a challenging journey filled with moments of uncertainty. Caregivers often struggle to track subtle day-to-day changes, recall specific incidents during doctor visits, and manage their own emotional well-being. This can lead to stress, incomplete information for healthcare providers, and a feeling of being overwhelmed.
+Caring for a loved one with dementia or Alzheimer's is a challenging journey. Caregivers often struggle to track subtle day-to-day changes, recall specific incidents during doctor visits, and manage their own emotional well-being. This leads to stress, incomplete information for healthcare providers, and a feeling of being overwhelmed.
 
 ### Our Approach
-CareCompass is a focused, client-side application that empowers caregivers with simple tools for daily logging and insightful data visualization. By leveraging AI, it transforms raw notes into a structured summary for doctor visits, helping to facilitate more effective conversations about care. The app prioritizes privacy and ease of use, with all data stored locally in the user's browser.
+CareCompass is a focused, client-side application that empowers caregivers with simple tools for daily logging and insightful data visualization. By leveraging Google's Gemini AI, it transforms raw notes into structured, empathetic summaries for doctor visits, facilitating more effective conversations about care. The app is 100% private, with all data stored locally in the user's browser.
 
 ## Hackathon Submission Details
 
@@ -22,11 +22,11 @@ CareCompass is a focused, client-side application that empowers caregivers with 
 - **Simple Onboarding:** A quick, welcoming setup to personalize the dashboard for the care recipient.
 - **Daily Care Logging:** Easily record events, observations, and activities with a simple form.
 - **Symptom Tagging:** Quickly tag logs with common symptoms like confusion, memory issues, or mood changes for better tracking.
-- **Caregiver Mood Tracking:** A simple slider allows caregivers to log their own emotional state, promoting self-awareness.
-- **Insightful Data Visualization:** Interactive charts display trends in logged symptoms and caregiver mood over time, helping to identify patterns and changes.
-- **AI-Generated Visit Summaries:** Leverages Google's Gemini AI to create structured, empathetic summaries of recent logs to prepare for doctor's appointments, highlighting key changes, trends, and caregiver concerns.
+- **Caregiver Mood Tracking:** A simple slider allows caregivers to log their own emotional state, promoting self-awareness and identifying patterns of stress.
+- **Insightful Data Visualization:** Interactive charts display trends in logged symptoms and caregiver mood over time, helping to identify patterns and changes in well-being.
+- **AI-Generated Visit Summaries:** Leverages Google's Gemini AI to create structured, empathetic summaries of recent logs to prepare for doctor's appointments, highlighting key changes, symptom trends, and caregiver concerns.
 - **100% Private & Secure:** All data is stored exclusively in your browser's local storage. No data ever leaves the user's computer.
-- **Reset Functionality:** Easily clear all data and start over at any time.
+- **Static Site Deployment:** Built with Next.js static export for fast, reliable performance on platforms like GitHub Pages.
 
 ## Tech Stack
 
@@ -37,7 +37,7 @@ This project is built with a modern, production-ready tech stack:
 - **UI:** [React](https://react.dev/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
-- **AI Integration:** Google's Gemini API (client-side `fetch`)
+- **AI Integration:** Google's Gemini API (via client-side `fetch`)
 - **Charts:** [Recharts](https://recharts.org/)
 - **Forms:** [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/) for validation
 
@@ -53,7 +53,7 @@ To run this project locally, follow these steps:
 2.  **Set up environment variables:**
     Create a file named `.env` in the root of the project and add your Google AI API key. The app uses this key to generate doctor visit summaries.
     ```
-    NEXT_PUBLIC_GEMINI_API_KEY=your_google_ai_api_key
+    NEXT_PUBLIC_GEMINI_API_KEY="your_google_ai_api_key"
     ```
 
 3.  **Run the development server:**
