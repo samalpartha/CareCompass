@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import { Copy, Download } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import type { GenerateDoctorVisitSummaryOutput } from '@/ai/flows/generate-doctor-visit-summary';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';

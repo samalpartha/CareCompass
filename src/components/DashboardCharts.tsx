@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { CareLog, CareTag } from '@/lib/types';
-import { startOfWeek, format, eachWeekOfInterval, subWeeks, endOfWeek } from 'date-fns';
+import { format, eachWeekOfInterval, subWeeks, endOfWeek } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart } from 'recharts';

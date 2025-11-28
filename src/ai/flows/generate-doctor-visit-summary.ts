@@ -36,13 +36,14 @@ const GenerateDoctorVisitSummaryOutputSchema = z.object({
 export type GenerateDoctorVisitSummaryOutput = z.infer<typeof GenerateDoctorVisitSummaryOutputSchema>;
 
 export async function generateDoctorVisitSummary(input: GenerateDoctorVisitSummaryInput): Promise<GenerateDoctorVisitSummaryOutput> {
+  const validatedInput = GenerateDoctorVisitSummaryInputSchema.parse(input);
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is required to generate summaries.');
   }
 
-  const prompt = buildPrompt(input.logs);
+  const prompt = buildPrompt(validatedInput.logs);
   const response = await fetch(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' +
       encodeURIComponent(apiKey),
