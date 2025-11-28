@@ -23,8 +23,8 @@ jobs:
     - run: npm install
     - run: npm run build
     
-    - uses: actions/upload-pages-artifact@32
+    - uses: actions/upload-pages-artifact@v3
       with:
         path: ./out
     
-    - uses: actions/deploy-pages@32
+    - uses: actions/deploy-pages@v3
