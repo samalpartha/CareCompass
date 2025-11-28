@@ -5,7 +5,7 @@ import type { CareLog, CareTag } from '@/lib/types';
 import { format, eachWeekOfInterval, subWeeks, endOfWeek } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 import { TAG_OPTIONS } from '@/lib/types';
 import { Frown, Laugh, Meh, Smile, Annoyed } from 'lucide-react';
 
@@ -113,8 +113,8 @@ export default function DashboardCharts({ logs }: DashboardChartsProps) {
                     content={<ChartTooltipContent hideLabel />}
                   />
                   <Bar dataKey="count" radius={5} layout="vertical">
-                    {moodFrequencyData.map((entry, index) => (
-                       <div key={`cell-${index}`} style={{ backgroundColor: `var(--color-${entry.mood})` }}/>
+                    {moodFrequencyData.map((entry) => (
+                       <Cell key={entry.mood} fill={chartConfigMood[entry.mood as keyof typeof chartConfigMood]?.color} />
                     ))}
                   </Bar>
                </BarChart>

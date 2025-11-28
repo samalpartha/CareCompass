@@ -32,11 +32,11 @@ interface LogEntryFormProps {
 }
 
 const moodOptions = [
-  { value: 1, icon: Annoyed, color: 'text-red-500' },
-  { value: 2, icon: Frown, color: 'text-orange-500' },
-  { value: 3, icon: Meh, color: 'text-yellow-500' },
-  { value: 4, icon: Smile, color: 'text-green-500' },
-  { value: 5, icon: Laugh, color: 'text-green-500' },
+  { value: 1, icon: Annoyed, color: 'text-red-500' }, // Stressed
+  { value: 2, icon: Frown, color: 'text-orange-500' }, // Sad
+  { value: 3, icon: Meh, color: 'text-yellow-500' }, // Okay
+  { value: 4, icon: Smile, color: 'text-sky-500' }, // Good
+  { value: 5, icon: Laugh, color: 'text-green-500' }, // Great
 ];
 
 export default function LogEntryForm({ isOpen, onOpenChange, onAddLog }: LogEntryFormProps) {
