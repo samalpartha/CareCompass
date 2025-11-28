@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import { Copy } from 'lucide-react';
+import { Copy, Sparkles, FileText, Activity, Heart, HelpCircle } from 'lucide-react';
 import type { GenerateDoctorVisitSummaryOutput } from '@/ai/flows/generate-doctor-visit-summary';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
@@ -18,9 +18,27 @@ interface VisitSummaryDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   summary: GenerateDoctorVisitSummaryOutput | null;
+  isGenerating: boolean;
 }
 
-export default function VisitSummaryDialog({ isOpen, onOpenChange, summary }: VisitSummaryDialogProps) {
+function SummarySkeleton() {
+    return (
+        <div className="space-y-6 animate-pulse">
+            {[...Array(4)].map((_, i) => (
+                <div key={i}>
+                    <div className="mb-2 h-6 w-1/3 rounded-md bg-muted"></div>
+                    <div className="space-y-2 rounded-md bg-secondary/50 p-3">
+                        <div className="h-4 w-full rounded-md bg-muted"></div>
+                        <div className="h-4 w-5/6 rounded-md bg-muted"></div>
+                        <div className="h-4 w-3/4 rounded-md bg-muted"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+export default function VisitSummaryDialog({ isOpen, onOpenChange, summary, isGenerating }: VisitSummaryDialogProps) {
   const { toast } = useToast();
 
   const handleCopyToClipboard = () => {
@@ -29,11 +47,14 @@ export default function VisitSummaryDialog({ isOpen, onOpenChange, summary }: Vi
 Doctor Visit Summary
 --------------------
 
-Key Changes Since Last Visit:
+Key Changes:
 ${summary.keyChanges}
 
-Example Episodes:
-${summary.exampleEpisodes}
+Symptom Trends:
+${summary.symptomTrends}
+
+Positive Observations:
+${summary.positiveObservations}
 
 Caregiver Concerns:
 ${summary.caregiverConcerns}
@@ -52,37 +73,56 @@ ${summary.questionsToAsk}
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>AI-Generated Visit Summary</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-2xl">
+            <Sparkles className="h-6 w-6 text-primary" />
+            AI-Generated Visit Summary
+          </DialogTitle>
           <DialogDescription>
             Here is a summary of recent logs to help guide your conversation with the doctor. This is not medical advice.
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[60vh] pr-6">
-          {summary ? (
+        <ScrollArea className="max-h-[60vh] pr-6 -mr-6">
+          {isGenerating && !summary ? (
+            <SummarySkeleton />
+          ) : summary ? (
             <div className="space-y-6 text-sm">
               <div>
-                <h3 className="mb-2 font-headline font-semibold text-primary">Key Changes Since Last Visit</h3>
-                <p className="whitespace-pre-wrap rounded-md bg-secondary/50 p-3">{summary.keyChanges}</p>
+                <h3 className="mb-2 flex items-center gap-2 font-headline font-semibold text-primary">
+                    <FileText className="h-5 w-5" /> Key Changes
+                </h3>
+                <p className="whitespace-pre-wrap rounded-md bg-secondary/50 p-4">{summary.keyChanges}</p>
               </div>
               <div>
-                <h3 className="mb-2 font-headline font-semibold text-primary">Example Episodes</h3>
-                <p className="whitespace-pre-wrap rounded-md bg-secondary/50 p-3">{summary.exampleEpisodes}</p>
+                <h3 className="mb-2 flex items-center gap-2 font-headline font-semibold text-primary">
+                    <Activity className="h-5 w-5" /> Symptom Trends
+                </h3>
+                <p className="whitespace-pre-wrap rounded-md bg-secondary/50 p-4">{summary.symptomTrends}</p>
+              </div>
+               <div>
+                <h3 className="mb-2 flex items-center gap-2 font-headline font-semibold text-green-600">
+                    <Heart className="h-5 w-5" /> Positive Observations
+                </h3>
+                <p className="whitespace-pre-wrap rounded-md bg-green-500/10 p-4">{summary.positiveObservations}</p>
               </div>
               <div>
-                <h3 className="mb-2 font-headline font-semibold text-primary">Caregiver Concerns</h3>
-                <p className="whitespace-pre-wrap rounded-md bg-secondary/50 p-3">{summary.caregiverConcerns}</p>
+                <h3 className="mb-2 flex items-center gap-2 font-headline font-semibold text-amber-600">
+                    <Heart className="h-5 w-5" /> Caregiver Concerns
+                </h3>
+                <p className="whitespace-pre-wrap rounded-md bg-amber-500/10 p-4">{summary.caregiverConcerns}</p>
               </div>
               <div>
-                <h3 className="mb-2 font-headline font-semibold text-accent">Questions You May Want to Ask</h3>
-                <p className="whitespace-pre-wrap rounded-md bg-accent/10 p-3">{summary.questionsToAsk}</p>
+                <h3 className="mb-2 flex items-center gap-2 font-headline font-semibold text-accent">
+                    <HelpCircle className="h-5 w-5" /> Questions to Ask
+                </h3>
+                <div className="whitespace-pre-wrap rounded-md bg-blue-500/10 p-4">
+                  <ul className="list-disc pl-5 space-y-1">
+                      {summary.questionsToAsk.split(/-\s|\*\s/).filter(q => q.trim()).map((q, i) => <li key={i}>{q.trim()}</li>)}
+                  </ul>
+                </div>
               </div>
             </div>
-          ) : (
-            <div className="flex h-64 items-center justify-center">
-              <p>Generating summary...</p>
-            </div>
-          )}
+          ) : null}
         </ScrollArea>
 
         <DialogFooter>

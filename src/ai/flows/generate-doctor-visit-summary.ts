@@ -18,38 +18,55 @@ const LogSchema = z.object({
 
 export const GenerateDoctorVisitSummaryInputSchema = z.object({
   logs: z.array(LogSchema).describe('An array of daily care logs.'),
+  recipientName: z.string().describe("The name of the care recipient."),
 });
 export type GenerateDoctorVisitSummaryInput = z.infer<
   typeof GenerateDoctorVisitSummaryInputSchema
 >;
 
 export const GenerateDoctorVisitSummaryOutputSchema = z.object({
-  keyChanges: z.string().describe('Key changes since the last visit.'),
-  exampleEpisodes: z.string().describe('Example episodes from the logs.'),
-  caregiverConcerns: z.string().describe('Caregiver concerns based on the logs.'),
-  questionsToAsk: z.string().describe('Suggested questions to ask the doctor.'),
+  keyChanges: z.string().describe('Key changes observed since the last visit.'),
+  symptomTrends: z.string().describe('Observed trends in specific symptoms (e.g., increased confusion in evenings).'),
+  positiveObservations: z.string().describe('Any positive moments or signs of stability noted in the logs.'),
+  caregiverConcerns: z.string().describe('Primary concerns for the caregiver, including impact on their well-being.'),
+  questionsToAsk: z.string().describe('A bulleted list of suggested questions to ask the doctor.'),
 });
 export type GenerateDoctorVisitSummaryOutput = z.infer<
   typeof GenerateDoctorVisitSummaryOutputSchema
 >;
 
 function buildPrompt(input: GenerateDoctorVisitSummaryInput): string {
-  const logEntries = input.logs.map(log => `
-Date: ${log.date}
-Text: ${log.text}
-Confusion: ${log.confusion ? 'Yes' : 'No'}
-Memory Issues: ${log.memoryIssues ? 'Yes' : 'No'}
-Mood Changes: ${log.moodChanges ? 'Yes' : 'No'}
-Sleep Issues: ${log.sleepIssues ? 'Yes' : 'No'}
-Eating Issues: ${log.eatingIssues ? 'Yes' : 'No'}
-Safety Incidents: ${log.safetyIncidents ? 'Yes' : 'No'}
-Caregiver Mood: ${log.caregiverMood}
-`).join('');
+  const logEntries = input.logs.map(log => {
+    const tags = [
+      log.confusion && 'Confusion',
+      log.memoryIssues && 'Memory Issues',
+      log.moodChanges && 'Mood Changes',
+      log.sleepIssues && 'Sleep Issues',
+      log.eatingIssues && 'Eating Issues',
+      log.safetyIncidents && 'Safety Incidents',
+    ].filter(Boolean).join(', ');
 
-  return `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
+    return `
+- Date: ${log.date}
+  - Observation: ${log.text}
+  - Tags: ${tags || 'None'}
+  - Caregiver Mood (1-5 scale): ${log.caregiverMood}
+`;}).join('');
 
-Summarize the observations from the following logs.
-${logEntries}`;
+  return `You are an empathetic AI assistant helping a caregiver prepare for a doctor's appointment for a loved one named ${input.recipientName}, who is living with dementia or Alzheimer's.
+Your task is to create a clear, structured, and insightful summary based on the caregiver's recent logs. The tone should be objective and helpful, but also acknowledge the caregiver's perspective.
+DO NOT provide medical advice. Focus on summarizing the provided data.
+
+Analyze the following logs and generate a JSON object with the following structure:
+- "keyChanges": A summary of the most significant changes (positive or negative) in ${input.recipientName}'s behavior, mood, or health.
+- "symptomTrends": Identify any patterns or trends. For example, "Increased confusion noted in the evenings," or "Memory issues seem more frequent after poor sleep."
+- "positiveObservations": Highlight any positive moments or periods of stability. This is important for a balanced view.
+- "caregiverConcerns": Based on the caregiver's mood and the content of the logs, summarize the main concerns. Mention the emotional toll if the logs suggest it (e.g., "The logs suggest a high level of stress for the caregiver, with frequent mood ratings of 1 or 2.").
+- "questionsToAsk": Generate a bulleted list of 3-5 specific questions the caregiver might want to ask the doctor based on the logs. Frame them as questions, e.g., "- What should we do about the recent increase in nighttime wandering?".
+
+Here are the logs:
+${logEntries}
+`;
 }
 
 
@@ -68,12 +85,13 @@ export async function generateDoctorVisitSummary(
       response_schema: {
         type: "OBJECT",
         properties: {
-            keyChanges: { type: "STRING", description: "Key changes since the last visit." },
-            exampleEpisodes: { type: "STRING", description: "Example episodes from the logs." },
-            caregiverConcerns: { type: "STRING", description: "Caregiver concerns based on the logs." },
-            questionsToAsk: { type: "STRING", description: "Suggested questions to ask the doctor." }
+            keyChanges: { type: "STRING", description: "Key changes observed since the last visit." },
+            symptomTrends: { type: "STRING", description: "Observed trends in specific symptoms (e.g., increased confusion in evenings)." },
+            positiveObservations: { type: "STRING", description: "Any positive moments or signs of stability noted in the logs." },
+            caregiverConcerns: { type: "STRING", description: "Primary concerns for the caregiver, including impact on their well-being." },
+            questionsToAsk: { type: "STRING", description: "A bulleted list of suggested questions to ask the doctor." }
         },
-        required: ["keyChanges", "exampleEpisodes", "caregiverConcerns", "questionsToAsk"]
+        required: ["keyChanges", "symptomTrends", "positiveObservations", "caregiverConcerns", "questionsToAsk"]
       }
     }
   };
@@ -93,6 +111,11 @@ export async function generateDoctorVisitSummary(
     }
 
     const data = await response.json();
+    
+    // Defensive check for response structure
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
+        throw new Error("Invalid response structure from API.");
+    }
     
     const jsonText = data.candidates[0].content.parts[0].text;
     const parsedOutput = JSON.parse(jsonText);
