@@ -7,7 +7,7 @@ export interface CareRecipient {
   stage?: 'early' | 'mid' | 'late' | 'not-specified';
 }
 
-export const TAG_OPTIONS: Record<CareTag, { label: string; icon: LucideIcon | any; description: string }> = {
+export const TAG_OPTIONS: Record<CareTag, { label: string; icon: LucideIcon | string; description: string }> = {
   confusion: { label: 'Confusion', icon: 'BrainCircuit', description: 'Episodes of disorientation or confusion.' },
   memoryIssues: { label: 'Memory', icon: 'BrainCog', description: 'Problems with short-term or long-term memory.' },
   moodChanges: { label: 'Mood', icon: 'HeartPulse', description: 'Significant shifts in mood or emotion.' },

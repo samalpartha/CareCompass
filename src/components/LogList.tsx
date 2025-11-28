@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import type { CareLog } from '@/lib/types';
 import { Badge } from './ui/badge';
 import { TAG_OPTIONS } from '@/lib/types';
-import { ScrollArea } from './ui/scroll-area';
 import { FileSearch } from 'lucide-react';
 
 interface LogListProps {
