@@ -1,4 +1,3 @@
-'use server';
 
 /**
  * @fileOverview Generates a structured summary of recent care logs for doctor visits.
@@ -24,10 +23,12 @@ const GenerateDoctorVisitSummaryInputSchema = z.object({
       caregiverMood: z.number().optional(),
     })
   ).describe('An array of daily care logs.'),
+    apiKey: z.string().describe('Gemini API key for generating summaries.'),
 });
 export type GenerateDoctorVisitSummaryInput = z.infer<typeof GenerateDoctorVisitSummaryInputSchema>;
 
 const GenerateDoctorVisitSummaryOutputSchema = z.object({
+  
   keyChanges: z.string().describe('Key changes since the last visit.'),
   exampleEpisodes: z.string().describe('Example episodes from the logs.'),
   caregiverConcerns: z.string().describe('Caregiver concerns based on the logs.'),
@@ -37,7 +38,7 @@ export type GenerateDoctorVisitSummaryOutput = z.infer<typeof GenerateDoctorVisi
 
 export async function generateDoctorVisitSummary(input: GenerateDoctorVisitSummaryInput): Promise<GenerateDoctorVisitSummaryOutput> {
   const validatedInput = GenerateDoctorVisitSummaryInputSchema.parse(input);
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = validatedInput.apiKey;
 
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY is required to generate summaries.');
