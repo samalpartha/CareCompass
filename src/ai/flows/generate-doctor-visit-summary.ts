@@ -1,119 +1,113 @@
-
 /**
- * @fileOverview Generates a structured summary of recent care logs for doctor visits.
- *
- * - generateDoctorVisitSummary - A function that generates the summary.
- * - GenerateDoctorVisitSummaryInput - The input type for the generateDoctorVisitSummary function.
- * - GenerateDoctorVisitSummaryOutput - The return type for the generateDoctorVisitSummary function.
+ * @fileOverview Generates a structured summary of recent care logs for doctor visits using a direct API call.
  */
 
-import {z} from 'zod';
+import { z } from 'zod';
 
-const GenerateDoctorVisitSummaryInputSchema = z.object({
-  logs: z.array(
-    z.object({
-      date: z.string(),
-      text: z.string(),
-      confusion: z.boolean().optional(),
-      memoryIssues: z.boolean().optional(),
-      moodChanges: z.boolean().optional(),
-      sleepIssues: z.boolean().optional(),
-      eatingIssues: z.boolean().optional(),
-      safetyIncidents: z.boolean().optional(),
-      caregiverMood: z.number().optional(),
-    })
-  ).describe('An array of daily care logs.'),
-    apiKey: z.string().describe('Gemini API key for generating summaries.'),
+const LogSchema = z.object({
+  date: z.string(),
+  text: z.string(),
+  confusion: z.boolean().optional(),
+  memoryIssues: z.boolean().optional(),
+  moodChanges: z.boolean().optional(),
+  sleepIssues: z.boolean().optional(),
+  eatingIssues: z.boolean().optional(),
+  safetyIncidents: z.boolean().optional(),
+  caregiverMood: z.number().optional(),
 });
-export type GenerateDoctorVisitSummaryInput = z.infer<typeof GenerateDoctorVisitSummaryInputSchema>;
 
-const GenerateDoctorVisitSummaryOutputSchema = z.object({
-  
+export const GenerateDoctorVisitSummaryInputSchema = z.object({
+  logs: z.array(LogSchema).describe('An array of daily care logs.'),
+});
+export type GenerateDoctorVisitSummaryInput = z.infer<
+  typeof GenerateDoctorVisitSummaryInputSchema
+>;
+
+export const GenerateDoctorVisitSummaryOutputSchema = z.object({
   keyChanges: z.string().describe('Key changes since the last visit.'),
   exampleEpisodes: z.string().describe('Example episodes from the logs.'),
   caregiverConcerns: z.string().describe('Caregiver concerns based on the logs.'),
   questionsToAsk: z.string().describe('Suggested questions to ask the doctor.'),
 });
-export type GenerateDoctorVisitSummaryOutput = z.infer<typeof GenerateDoctorVisitSummaryOutputSchema>;
+export type GenerateDoctorVisitSummaryOutput = z.infer<
+  typeof GenerateDoctorVisitSummaryOutputSchema
+>;
 
-export async function generateDoctorVisitSummary(input: GenerateDoctorVisitSummaryInput): Promise<GenerateDoctorVisitSummaryOutput> {
-  const validatedInput = GenerateDoctorVisitSummaryInputSchema.parse(input);
-  const apiKey = validatedInput.apiKey;
+function buildPrompt(input: GenerateDoctorVisitSummaryInput): string {
+  const logEntries = input.logs.map(log => `
+Date: ${log.date}
+Text: ${log.text}
+Confusion: ${log.confusion ? 'Yes' : 'No'}
+Memory Issues: ${log.memoryIssues ? 'Yes' : 'No'}
+Mood Changes: ${log.moodChanges ? 'Yes' : 'No'}
+Sleep Issues: ${log.sleepIssues ? 'Yes' : 'No'}
+Eating Issues: ${log.eatingIssues ? 'Yes' : 'No'}
+Safety Incidents: ${log.safetyIncidents ? 'Yes' : 'No'}
+Caregiver Mood: ${log.caregiverMood}
+`).join('');
 
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is required to generate summaries.');
-  }
+  return `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
 
-  const prompt = buildPrompt(validatedInput.logs);
-  const response = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' +
-      encodeURIComponent(apiKey),
-    {
+Summarize the observations from the following logs.
+${logEntries}`;
+}
+
+
+export async function generateDoctorVisitSummary(
+  input: GenerateDoctorVisitSummaryInput,
+  apiKey: string
+): Promise<GenerateDoctorVisitSummaryOutput> {
+  
+  const promptText = buildPrompt(input);
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+  const requestBody = {
+    contents: [{ parts: [{ text: promptText }] }],
+    generationConfig: {
+      response_mime_type: "application/json",
+      response_schema: {
+        type: "OBJECT",
+        properties: {
+            keyChanges: { type: "STRING", description: "Key changes since the last visit." },
+            exampleEpisodes: { type: "STRING", description: "Example episodes from the logs." },
+            caregiverConcerns: { type: "STRING", description: "Caregiver concerns based on the logs." },
+            questionsToAsk: { type: "STRING", description: "Suggested questions to ask the doctor." }
+        },
+        required: ["keyChanges", "exampleEpisodes", "caregiverConcerns", "questionsToAsk"]
+      }
+    }
+  };
+
+  try {
+    const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: 'user',
-            parts: [{text: prompt}],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.4,
-        },
-      }),
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
     }
-  );
 
-  if (!response.ok) {
-    throw new Error(`Gemini request failed with status ${response.status}`);
-  }
+    const data = await response.json();
+    
+    const jsonText = data.candidates[0].content.parts[0].text;
+    const parsedOutput = JSON.parse(jsonText);
 
-  const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-  const parsed = parseJsonResponse(rawText);
+    // Validate the output against the Zod schema
+    const validationResult = GenerateDoctorVisitSummaryOutputSchema.safeParse(parsedOutput);
 
-  return GenerateDoctorVisitSummaryOutputSchema.parse({
-    keyChanges: parsed.keyChanges ?? 'No key changes were provided.',
-    exampleEpisodes: parsed.exampleEpisodes ?? 'No example episodes were provided.',
-    caregiverConcerns: parsed.caregiverConcerns ?? 'No caregiver concerns were provided.',
-    questionsToAsk: parsed.questionsToAsk ?? 'No questions were provided.',
-  });
-}
+    if (!validationResult.success) {
+        throw new Error(`API response validation failed: ${validationResult.error.message}`);
+    }
 
-function buildPrompt(logs: GenerateDoctorVisitSummaryInput['logs']): string {
-  const formattedLogs = logs
-    .map(log => {
-      return `Date: ${log.date}\nText: ${log.text}\nConfusion: ${log.confusion ? 'Yes' : 'No'}\nMemory Issues: ${log.memoryIssues ? 'Yes' : 'No'}\nMood Changes: ${log.moodChanges ? 'Yes' : 'No'}\nSleep Issues: ${log.sleepIssues ? 'Yes' : 'No'}\nEating Issues: ${log.eatingIssues ? 'Yes' : 'No'}\nSafety Incidents: ${log.safetyIncidents ? 'Yes' : 'No'}\nCaregiver Mood: ${log.caregiverMood ?? 'Not logged'}`;
-    })
-    .join('\n\n');
+    return validationResult.data;
 
-  return `You are assisting a dementia caregiver by generating a structured summary of recent care logs for a doctor's visit. DO NOT give medical advice.
-
-Summarize the observations from the following logs and return ONLY valid JSON matching this TypeScript type:
-{
-  "keyChanges": string;
-  "exampleEpisodes": string;
-  "caregiverConcerns": string;
-  "questionsToAsk": string;
-}
-
-Logs:
-${formattedLogs}`;
-}
-
-function parseJsonResponse(raw: string): Partial<GenerateDoctorVisitSummaryOutput> {
-  const clean = raw
-    .replace(/^```json\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim();
-
-  try {
-    return JSON.parse(clean);
   } catch (error) {
-    console.warn('Failed to parse Gemini response as JSON', {error, raw});
-    return {};
+    console.error("Error generating doctor visit summary:", error);
+    throw new Error("Failed to generate summary. Please check your API key and network connection.");
   }
 }
