@@ -14,25 +14,30 @@ body {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 205 79% 46%;
+    --primary: 217 91% 60%; /* Calming Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 150 75% 45%;
+    --accent: 217 91% 65%; /* Lighter blue for accents */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 215 75% 55%;
-    --chart-1: 22 90% 50%; /* Orange for cognitive */
-    --chart-2: 262 80% 55%; /* Purple for cognitive */
-    --chart-3: 340 90% 60%; /* Pink/Rose for mood */
-    --chart-4: 190 80% 45%; /* Cyan for physical */
-    --chart-5: 45 90% 55%;  /* Yellow/Gold for physical */
+    --ring: 217 91% 60%;
+    
+    /* Refined Chart Colors */
+    --chart-1: 220 85% 65%; /* Softer Blue */
+    --chart-2: 260 80% 70%; /* Gentle Purple */
+    --chart-3: 340 85% 70%; /* Muted Pink */
+    --chart-4: 190 70% 60%; /* Teal */
+    --chart-5: 45 80% 60%;  /* Soft Gold */
+    --chart-destructive: 0 72% 51%; /* Softer Red for destructive actions in charts */
+    
     --radius: 0.5rem;
+    
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -49,24 +54,28 @@ body {
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 205 79% 46%;
+    --primary: 217 91% 60%; /* Calming Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 150 75% 45%;
+    --accent: 217 91% 65%; /* Lighter blue */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 215 75% 55%;
-    --chart-1: 22 90% 50%; /* Orange for cognitive */
-    --chart-2: 262 80% 55%; /* Purple for cognitive */
-    --chart-3: 340 90% 60%; /* Pink/Rose for mood */
-    --chart-4: 190 80% 45%; /* Cyan for physical */
-    --chart-5: 45 90% 55%;  /* Yellow/Gold for physical */
+    --ring: 217 91% 60%;
+
+    /* Refined Chart Colors */
+    --chart-1: 220 85% 65%; /* Softer Blue */
+    --chart-2: 260 80% 70%; /* Gentle Purple */
+    --chart-3: 340 85% 70%; /* Muted Pink */
+    --chart-4: 190 70% 60%; /* Teal */
+    --chart-5: 45 80% 60%;  /* Soft Gold */
+    --chart-destructive: 0 72% 51%; /* Softer Red for destructive actions in charts */
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -83,6 +92,6 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-secondary/40 text-foreground;
   }
 }
