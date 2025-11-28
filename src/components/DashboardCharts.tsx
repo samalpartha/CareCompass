@@ -12,15 +12,15 @@ interface DashboardChartsProps {
   logs: CareLog[];
 }
 
-const chartConfigTags: ChartConfig = Object.fromEntries(
-  Object.entries(TAG_OPTIONS).map(([key, { label }], index) => [
-    key,
-    {
-      label,
-      color: `hsl(var(--chart-${(index % 5) + 1}))`,
-    },
-  ])
-);
+const chartConfigTags: ChartConfig = {
+  confusion: { label: TAG_OPTIONS.confusion.label, color: 'hsl(var(--chart-1))' },
+  memoryIssues: { label: TAG_OPTIONS.memoryIssues.label, color: 'hsl(var(--chart-2))' },
+  moodChanges: { label: TAG_OPTIONS.moodChanges.label, color: 'hsl(var(--chart-3))' },
+  sleepIssues: { label: TAG_OPTIONS.sleepIssues.label, color: 'hsl(var(--chart-4))' },
+  eatingIssues: { label: TAG_OPTIONS.eatingIssues.label, color: 'hsl(var(--chart-5))' },
+  safetyIncidents: { label: TAG_OPTIONS.safetyIncidents.label, color: 'hsl(var(--destructive))' },
+};
+
 
 const chartConfigMood: ChartConfig = {
   caregiverMood: {
