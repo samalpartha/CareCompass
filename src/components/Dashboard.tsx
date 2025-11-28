@@ -71,7 +71,7 @@ export default function Dashboard({ careRecipient, logs, onUpdateLogs, onReset }
       toast({
         variant: "destructive",
         title: "Generation Failed",
-        description: "There was an error generating the visit summary. Please try again.",
+        description: "There was an error generating the visit summary. Please make sure your API key is configured correctly and try again.",
       });
     } finally {
       setIsGenerating(false);
