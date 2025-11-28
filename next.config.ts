@@ -32,6 +32,17 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { isServer }) => {
+    // This is the fix for the 'async_hooks' error.
+    // It tells webpack to not try to resolve this module on the client side.
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        'async_hooks': false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
